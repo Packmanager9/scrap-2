@@ -248,7 +248,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
         }
         zdis(){
-           return  (Math.abs(this.object.y - this.target.x))
+           return  ((Math.abs(this.object.y - this.target.x))*((Math.abs(this.object.x - this.target.y)))) / (((Math.abs(this.object.y - this.target.x))+((Math.abs(this.object.x - this.target.y))))/2 )
 
         }
         xhypotenuse() {
@@ -1384,9 +1384,9 @@ window.addEventListener('DOMContentLoaded', (event) => {
     // }
     let majorstep = 4
     let spin = 4
-    let rmod = 2
-    let gmod = 3
-    let bmod =  5
+    let rmod = 20
+    let gmod = 30
+    let bmod =  50
     function shade(point){
 
      center = new Circle(320, 320, 1, "red")
@@ -1408,14 +1408,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
         color.g = 0
         color.b = 0
         for(let t = 0;t<links.length;t++){
-            let htop = links[t].hypotenusez()
+            let htop = links[t].hypotenuse()
             color.r += (Math.floor(htop*htop)%rmod)
             color.g += Math.floor(htop)%gmod
             color.b += Math.floor(htop)%bmod
         }
-        color.r%=255
-        color.g%=255
-        color.b%=255
+        // color.r%=255
+        // color.g%=255
+        // color.b%=255
         return color
     }
     // function rotate(colors){
@@ -1438,11 +1438,21 @@ window.addEventListener('DOMContentLoaded', (event) => {
        }
            let links = []
            for(let t = 0;t<centers.length;t++){
+               if(t == 0){
+                let link = new LineOP(point, centers[t])
+                let angle = link.angle()+(set/200)
+                angle+=(link.hypotenuse()/(90-(set/1000)))
+                link.object = new Point(center.x+(Math.cos(angle)*link.hypotenuse()),  center.y+(Math.sin(angle)*link.hypotenuse()),  )
+                links.push(link)
+
+               }else{
+
                let link = new LineOP(point, centers[t])
-               let angle = link.angle()+(set/2)
-               angle+=(link.hypotenuse()/(9-(set/1000)))
+               let angle = link.angle()-(set/200)
+               angle-=(link.hypotenuse()/(90-(set/1000)))
                link.object = new Point(center.x+(Math.cos(angle)*link.hypotenuse()),  center.y+(Math.sin(angle)*link.hypotenuse()),  )
                links.push(link)
+               }
            }
            let color = {}
            color.r = 0
@@ -1450,9 +1460,9 @@ window.addEventListener('DOMContentLoaded', (event) => {
            color.b = 0
            for(let t = 0;t<links.length;t++){
                let htop = links[t].zdis()
-               color.r += (((htop*links[t].xdis())/30)-htop)* (5/rmod)
-               color.g += ((htop*links[t].ydis())/20) * (5/gmod)
-               color.b +=  ((htop*(links[t].zdis()/10))/10)  * (5/bmod)
+               color.r += Math.abs( Math.cos(links[t].angle()*3.5)*128)
+               color.g +=  Math.abs( Math.cos(links[t].angle()*2.5)*128)
+               color.b +=  Math.abs( Math.cos(links[t].angle()*1.5)*128)
            }
         //    color.r%=255
         //    color.g%=255
@@ -1465,30 +1475,85 @@ window.addEventListener('DOMContentLoaded', (event) => {
         center = new Circle(320, 320, 1, "red")
         centers = []
         angle = 0
-        distance = 0
-       for(let t = 0;t<1;t++){
+        distance = 150
+       for(let t = 0;t<2;t++){
            let point = new Circle(center.x + (Math.cos(angle)*distance),center.y + (Math.sin(angle)*distance), 1,"red")
-           angle += (Math.PI*2)/5
+           angle += (Math.PI*2)/2
            centers.push(point)
        }
            let links = []
-           for(let t = 0;t<centers.length;t++){
-               let link = new LineOP(point, centers[t])
-               links.push(link)
+
+           
+           let shiftpoint = new Circle(point.x, point.y, 1, "red")
+
+           for(let k = 0;k<50;k++){
+            for(let t = 0;t<centers.length;t++){
+                shiftpoint.xmom += (centers[t].x-shiftpoint.x)/10
+                shiftpoint.ymom += (centers[t].y-shiftpoint.y)/10
+    
+               }
+               shiftpoint.move()
            }
+
+           
+           for(let t = 0;t<centers.length;t++){
+            let link = new LineOP(point, centers[t])
+            if(link.hypotenuse()  < 150){
+            //  let link = new LineOP(point, centers[t])
+             let angle = link.angle()+(set/200)
+             angle+=(link.hypotenuse()/(9-(set/1000)))
+             link.object = new Point(center.x+(Math.cos(angle)*link.hypotenuse()),  center.y+(Math.sin(angle)*link.hypotenuse()),  )
+             links.push(link)
+
+            }else{
+
+            // let link = new LineOP(point, centers[t])
+            let angle = link.angle()-(set/200)
+            angle-=(link.hypotenuse()/(90-(set/1000)))
+            link.object = new Point(center.x+(Math.cos(angle)*link.hypotenuse()),  center.y+(Math.sin(angle)*link.hypotenuse()),  )
+            links.push(link)
+            }
+        }
            let color = {}
            color.r = 0
            color.g = 0
            color.b = 0
+           let indexr = -1
+           let indexg = -1
+           let indexb = -1
+
+           let minr = 999999999999999
+           let ming = 999999999999999
+           let minb = 999999999999999
            for(let t = 0;t<links.length;t++){
-               let htop = links[t].hypotenuse()
-               color.r += (( (Math.floor(htop*(2*Math.cos(links[t].angle()*set)))%rmod)) * (5/rmod))
-               color.g += (((Math.floor(htop*(2*Math.cos(links[t].angle()*(set*1.41))))%gmod)) * (5/gmod))
-               color.b += (( (Math.floor(htop*(2*Math.cos(links[t].angle()*(set*2))))%bmod)) * (5/bmod))
+            let htop = links[t].hypotenuser()
+            if(htop < minr){
+             minr = htop
+             indexr = t
+            }
+             htop = links[t].hypotenuseg()
+            if(htop < ming){
+             ming = htop
+             indexg = t
+            }
+             htop = links[t].hypotenuseb()
+            if(htop < minb){
+             minb = htop
+             indexb = t
+            }
            }
-           color.r%=255
-           color.g%=255
-           color.b%=255
+
+           color.r = (minr* links[0].xdis())/255
+           color.g = (ming* links[0].ydis())/255
+           color.b = (minb* links[0].hypotenuse())/255
+
+        //    color.r += htop
+        //    color.g += htop
+        //    color.b += htop
+
+        //    color.r%=255
+        //    color.g%=255
+        //    color.b%=255
            return color
        }
 
@@ -1560,15 +1625,24 @@ window.addEventListener('DOMContentLoaded', (event) => {
             for (var i = 0; i < data.length; i += 4) {
 
                 let point = new Circle(Math.floor((i / 4) % 640), Math.floor(Math.floor(i / 4) / 640), 1, "red")
-                let colors = turncolorize(point)
-                // colors = rotate(colors)
-                // // let colors2 = shade(point)
+                let colors = colorize(point)
+                let colors2 = turncolorize(point)
+                let colors3 = shade(point)
                 // data[i]  = (colors.r*colors2.r)%255
                 // data[i + 1] = (colors.g*colors2.g)%255
-                // data[i + 2] = (colors.b*colors2.b)%255
-                data[i]  =  ((colors.r))
-                data[i + 1] = colors.g
-                data[i + 2] = colors.b
+                // // data[i + 2] = (colors.b*colors2.b)%255
+
+
+
+
+                data[i]  =  ((colors.r))+colors2.r+colors3.r
+                data[i + 1] = colors.g+colors2.g+colors3.g
+                data[i + 2] = colors.b+colors2.b+colors3.b
+
+                
+                // data[i]  =  ((colors.r))
+                // data[i + 1] = colors.g
+                // data[i + 2] = colors.b
                 data[i + 3] = 255
                 // if(colors.r+colors.b+colors.g < 100){
                 //     data[i+3] = 0
@@ -1578,16 +1652,16 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
             // canvas_context.clearRect(0, 0, canvas.width, canvas.height)  // refreshes the image
 
-            // globalx++
-            // let img2 = new Image();
-            // img2.src = canvas.toDataURL("image/png");
-            // // document.body.appendChild(img2);
-            // let link = document.createElement("a");
-            // link.download = `shiftlong${globalx}.png`
-            // canvas.toBlob(function(blob) {
-            //   link.href = URL.createObjectURL(blob);
-            //     link.click();
-            // }, "image/png");
+            globalx++
+            let img2 = new Image();
+            img2.src = canvas.toDataURL("image/png");
+            // document.body.appendChild(img2);
+            let link = document.createElement("a");
+            link.download = `sliym${globalx}.png`
+            canvas.toBlob(function(blob) {
+              link.href = URL.createObjectURL(blob);
+                link.click();
+            }, "image/png");
             // spin+=.1
         }
 
@@ -1598,4 +1672,4 @@ window.addEventListener('DOMContentLoaded', (event) => {
     }
 
 })
-
+console.log(window.getComputedStyle(canvas))
